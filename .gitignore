@@ -86,3 +86,6 @@ site
 # secrets 
 secrets
 .secrets
+
+#
+.env
