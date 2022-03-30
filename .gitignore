@@ -1,0 +1,88 @@
+*.log
+*.pyc
+*.retry
+.svn
+*.sqlite3
+
+# editors
+.ropeproject
+*~
+.*~
+*.swp
+.vscode
+
+# python
+*.egg-info
+build
+dist
+__pycache__
+
+# django projects
+media
+components
+docs/build
+logs
+mails
+archives
+node_modules
+web/app/local_settings.py
+web/static
+web/theme/static/lib
+yarn.lock
+covers
+.coverage
+web/webapp/static/webapp
+
+# mac
+.DS_Store
+
+# Ansible
+ansible/hosts.conf
+ansible/ssh.conf
+ansible/data
+
+# vue.js 
+node_modules
+package-lock.json
+web/ui/static/bundles
+web/ui/modules.json
+web/ui/sources.json
+
+# jupyter
+
+.ipynb_checkpoints
+
+# wordpress
+bin/wp-cli.phar
+.php-version
+wordpress
+
+# docs
+~*.xlsx
+
+# schemaspy
+bin/*.jar
+bin/schemaspy
+
+#
+keys/*.pem
+keys/*.cert
+keys/*.key
+keys/*.pid
+
+# mkcert
+web/ssl.*.pem
+
+# File uploading
+web/upload
+
+# environ
+.env
+.env.development
+
+# mkdocs
+site
+
+# secrets 
+secrets
+.secrets
