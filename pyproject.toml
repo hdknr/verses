@@ -5,6 +5,10 @@ description = "python tools for aws and more"
 authors = ["user.name <gmail@hdknr.com>"]
 license = "MIT"
 
+[tool.poetry.scripts]
+tools = "verses.runner:main"
+
+
 [tool.poetry.dependencies]
 python = "^3.9"
 click = "^8.0.3"
