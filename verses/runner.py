@@ -3,7 +3,8 @@ from pathlib import Path
 import click
 import environ as E
 
-from .aws import commands
+from .aws.commands import aws
+from .base.commands import base
 
 # https://django-environ.readthedocs.io/en/latest/
 
@@ -18,4 +19,5 @@ def main(ctx):
     ctx.obj["env"] = ENV
 
 
-main.add_command(commands.aws)
+main.add_command(aws)
+main.add_command(base)
