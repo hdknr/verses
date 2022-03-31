@@ -1,7 +1,9 @@
 import click
 
-from . import instance
+from verses.aws.base import filters
 from verses.base import remote
+
+from . import instance
 
 
 @click.group()
@@ -11,15 +13,12 @@ def ec2(ctx):
 
 
 @ec2.command()
-@click.argument("user")
-@click.argument("tags", nargs=-1)
+@click.argument("name")
+@click.option("--user", "-u", default="ubuntu")
 @click.pass_context
-def ssh(ctx, user, tags):
-    """ ssh to EC2 instance"""
-    filters = [
-        {"Name": f"tag:{k}", "Values": [v]} for k, v in [i.split("=") for i in tags]
-    ]
-    res = instance.query(None, filters=filters)
+def ssh_conf(ctx, name, user):
+    """ ssh to EC2 instance """
+    res = instance.query(None, filters=filters(("Name", name)))
 
     if len(res.Reservations) == 1:
         keyname = res.Reservations[0].Instances[0].KeyName
@@ -27,8 +26,11 @@ def ssh(ctx, user, tags):
         if not key:
             print(f"{keyname} was not found.")
             return
-        remote.exec_ssh(user, res.Reservations[0].Instances[0].PublicIpAddress, str(key))
-        return
-    
-    # TODO:
-    # list of instances
+
+        remote.update_ssh_conf(
+            name,
+            user,
+            "server",
+            res.Reservations[0].Instances[0].PublicIpAddress,
+            str(key),
+        )

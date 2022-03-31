@@ -21,5 +21,5 @@ def filters(*tags, **params):
         return {"Name": key, "Values": [value]}
 
     return [_q(f"tag:{key}", value) for (key, value) in tags] + [
-        _q(**i) for i in params.items
+        _q(key, value) for (key, value) in params.items()
     ]
