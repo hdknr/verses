@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import click
 import environ as E
 
@@ -12,7 +14,7 @@ def main(ctx):
     ctx.ensure_object(dict)
 
     ENV = E.Env()
-    ENV.read_env(env_file=str((E.Path(__file__) - 2).path(".env")))
+    ENV.read_env(env_file=str(Path.cwd() / ".env"))
     ctx.obj["env"] = ENV
 
 
