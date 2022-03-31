@@ -23,7 +23,7 @@ def ssh(ctx, user, tags):
 
     if len(res.Reservations) == 1:
         keyname = res.Reservations[0].Instances[0].KeyName
-        key = remote.ssh_keyfile(f"{keyname}.cer") or remote.ssh_keyfile(f"{keyname}.pem")
+        key = remote.ssh_keyfile(f"{keyname}.cer", f"{keyname}.pem")
         if not key:
             print(f"{keyname} was not found.")
             return
