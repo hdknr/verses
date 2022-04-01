@@ -4,7 +4,7 @@ import click
 import environ as E
 
 from .aws.commands import aws
-from .base.commands import base
+from .base.process import exec_command
 
 # https://django-environ.readthedocs.io/en/latest/
 
@@ -19,5 +19,13 @@ def main(ctx):
     ctx.obj["env"] = ENV
 
 
+@main.command()
+@click.pass_context
+def open_terminal(ctx):
+    """ Open Terminal"""
+    exec_command("date", terminal=True)
+
+
+# sub-subcommands
 main.add_command(aws)
-main.add_command(base)
+
