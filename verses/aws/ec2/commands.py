@@ -1,7 +1,6 @@
 import click
 
-
-from . import instances
+from . import ami, instances
 
 
 @click.group()
@@ -11,3 +10,4 @@ def ec2(ctx):
 
 
 ec2.add_command(instances.instances)
+ec2.add_command(ami.ami)

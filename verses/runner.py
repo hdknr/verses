@@ -22,10 +22,9 @@ def main(ctx):
 @main.command()
 @click.pass_context
 def open_terminal(ctx):
-    """ Open Terminal"""
+    """Open Terminal"""
     exec_command("date", terminal=True)
 
 
 # sub-subcommands
 main.add_command(aws)
-

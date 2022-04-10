@@ -35,3 +35,13 @@ def call(func, *args, **kwargs):
         if "DryRunOperation" == e.response["Error"]["Code"]:
             return e.response
         raise e
+
+
+def describe(cls, func, filters=None, raw=False):
+    """
+    describe function call
+    """
+    q = filters and dict(Filters=filters) or {}
+    res = func(**q)
+    return res if raw else Object(res)
+
