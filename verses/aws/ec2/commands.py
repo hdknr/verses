@@ -21,7 +21,7 @@ ec2.add_command(ami.ami)
 @click.pass_context
 def delete_tags(ctx, res_or_args, tags=None, dry_run=False):
     """
-    tags = [{key1:value1}, {key2:value2},...]
+    ami-xxxxx ami-yyyyy latest=true
     """
     resources = [i for i in res_or_args if i.find("=") < 0]
     tags = keyvalue_list(res_or_args)
@@ -31,4 +31,5 @@ def delete_tags(ctx, res_or_args, tags=None, dry_run=False):
     )
     if tags:
         kwargs["Tags"] = tags
+
     return call(client().delete_tags, **kwargs)

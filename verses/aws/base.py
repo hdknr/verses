@@ -32,7 +32,7 @@ def args_filters(*args, **params):
 
 
 def keyvalue_list(args):
-    return [dict((tuple(i.split("=")),)) for i in args if i.find("=") >= 0]
+    return [dict(zip(("Key", "Value"), tuple(i.split("=")))) for i in args if i.find("=") >= 0]
 
 
 def call(func, *args, **kwargs):
