@@ -1,3 +1,6 @@
+from botocore.exceptions import ClientError
+
+
 def Object(item, root="Object"):
     def _convert(item, name):
         if isinstance(item, dict):
@@ -23,3 +26,12 @@ def filters(*tags, **params):
     return [_q(f"tag:{key}", value) for (key, value) in tags] + [
         _q(key, value) for (key, value) in params.items()
     ]
+
+
+def call(func, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except ClientError as e:
+        if "DryRunOperation" == e.response["Error"]["Code"]:
+            return e.response
+        raise e
