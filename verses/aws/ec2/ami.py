@@ -3,7 +3,7 @@ import click
 from verses.aws import base
 from verses.base import logs
 
-from ..base import filters
+from ..base import args_filters
 from .base import client
 
 
@@ -23,7 +23,7 @@ def describe(ctx, tags, raw):
     res = base.describe(
         None,
         client().describe_images,
-        filters=filters(*(tuple(t.split("=")) for t in tags)),
+        filters=args_filters(*tags),
         raw=True,
     )
     if raw:

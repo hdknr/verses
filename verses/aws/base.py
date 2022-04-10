@@ -23,9 +23,15 @@ def filters(*tags, **params):
     def _q(key, value):
         return {"Name": key, "Values": [value]}
 
-    return [_q(f"tag:{key}", value) for (key, value) in tags] + [
-        _q(key, value) for (key, value) in params.items()
-    ]
+    return [_q(f"tag:{key}", value) for (key, value) in tags] + [_q(key, value) for (key, value) in params.items()]
+
+
+def args_filters(*args, **params):
+    return filters(*(tuple(i.split("=")) for i in args), **params)
+
+
+def keyvalue_list(args):
+    return [dict((tuple(i.split("=")),)) for i in args if i.find("=") >= 0]
 
 
 def call(func, *args, **kwargs):
@@ -44,4 +50,3 @@ def describe(cls, func, filters=None, raw=False):
     q = filters and dict(Filters=filters) or {}
     res = func(**q)
     return res if raw else Object(res)
-
