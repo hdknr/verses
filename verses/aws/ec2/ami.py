@@ -15,9 +15,10 @@ def ami(ctx):
 
 @ami.command()
 @click.argument("tags", metavar="{key=value}", nargs=-1)
+@click.option("--exclude_tag", "-e", default="")
 @click.option("--raw", "-r", is_flag=True)
 @click.pass_context
-def describe(ctx, tags, raw):
+def describe(ctx, tags, exclude_tag, raw):
     """List of AMI"""
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.describe_images
     res = base.describe(
@@ -29,6 +30,20 @@ def describe(ctx, tags, raw):
     if raw:
         logs.message(res)
         return
-    keys = ["ImageId", "Name", "Tags"]
-    msg = [dict((i, image.get(i, None)) for i in keys) for image in res["Images"]]
+
+    def _entry(image):
+        keys = [
+            "ImageId",
+            "Name",
+        ]
+        data = dict((i, image.get(i, None)) for i in keys)
+        data["Tags"] = dict((i["Key"], i["Value"]) for i in image["Tags"])
+        return data
+
+    msg = [_entry(image) for image in res["Images"]]
+
+    if exclude_tag:
+        key, value = exclude_tag.split("=")
+        msg = [m for m in msg if m["Tags"].get(key, None) != value]
+
     logs.message(msg)
