@@ -1,24 +1,19 @@
 from pathlib import Path
 
-import environ
-
 from .process import exec_command
 
-env = environ.Env()
+
+def find_ssh_keyfile(base_path, *name):
+    if base_path.is_dir():
+        for i in name:
+            file = Path(base_path) / f"keys/{i}"
+            if file.is_file():
+                return file.absolute()
 
 
-def secret_path(name=""):
-    base = Path(env.str("SECRETS", default=".secrets"))
-    return name and (base / name) or base
-
-
-def ssh_keyfile(*name):
-    base = secret_path()
-    for i in name:
-        file = Path(base) / f"keys/{i}"
-        print(file)
-        if file.is_file():
-            return file
+def ssh_keyfile(*name, secrets_dir=None):
+    secrets_dir = secrets_dir or "~/.ssh"
+    return find_ssh_keyfile(Path(secrets_dir).expanduser(), *name)
 
 
 def exec_ssh(user, ipaddress, key, terminal=True):
@@ -34,7 +29,8 @@ Host {server}
 """
 
 
-def update_ssh_conf(name, user, server, address, key):
-    path = secret_path(f"ssh.{name}.conf")
+def update_ssh_conf(name, user, server, address, key, secrets_dir=None):
+    secrets_dir = secrets_dir or "~/.ssh"
+    path = Path(secrets_dir).expanduser() / f"ssh.{name}.conf"
     with open(path, "w") as out:
         out.write(CONF_FILE.format(user=user, server=server, address=address, key=key))

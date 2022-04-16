@@ -2,34 +2,26 @@ from datetime import datetime
 
 import click
 
-from verses.aws.base import Object, call
+from verses.aws.base import call, keyvalues, tag_specs
 from verses.base import logs, remote
 
-from ..base import filters
+from .. import base
+from . import ami
 from .base import client
 
 
-def query(cls, filters=None):
+def query_by_name(cls, name, raw=False):
     """
     - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.describe_instances
     - https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/APIReference/API_DescribeInstances.html
     """
-    q = filters and dict(Filters=filters) or {}
-    return Object(client().describe_instances(**q))
+    filters = base.filters({"Name": name}, {})
+    res = base.describe(None, client().describe_instances, filters=filters, raw=raw)
 
+    if raw and len(res["Reservations"]) > 0:
+        return res["Reservations"][0]["Instances"][0]
 
-def query_by_name(cls, name):
-    res = query(cls, filters=filters(("Name", name)))
     return res.Reservations[0].Instances[0] if len(res.Reservations) == 1 else None
-
-
-def tag_specifications(res_type, keyvalues):
-    return [
-        {
-            "ResourceType": res_type,
-            "Tags": [{"Key": key, "Value": value} for key, value in keyvalues.items()],
-        }
-    ]
 
 
 @click.group()
@@ -40,9 +32,20 @@ def instances(ctx):
 
 @instances.command()
 @click.argument("name")
-@click.option("--user", "-u", default="ubuntu")
 @click.pass_context
-def ssh_conf(ctx, name, user):
+def describe(ctx, name):
+    """describe"""
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.describe_instances
+    instance = query_by_name(None, name, raw=True)
+    logs.message(instance)
+
+
+@instances.command()
+@click.argument("name")
+@click.option("--user", "-u", default="ubuntu")
+@click.option("--secrets_dir", "-s", default=None)
+@click.pass_context
+def ssh_conf(ctx, name, user, secrets_dir):
     """create ssh config file to EC2 instance"""
     instance = query_by_name(None, name)
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.describe_instances
@@ -52,7 +55,7 @@ def ssh_conf(ctx, name, user):
 
     keyname, ipaddress = instance.KeyName, instance.PublicIpAddress
 
-    key = remote.ssh_keyfile(f"{keyname}.cer", f"{keyname}.pem")
+    key = remote.ssh_keyfile(f"{keyname}.cer", f"{keyname}.pem", secrets_dir=secrets_dir)
     if not key:
         logs.message(dict(error=f"{keyname} was not found."))
         return
@@ -63,17 +66,19 @@ def ssh_conf(ctx, name, user):
         "server",
         ipaddress,
         str(key),
+        secrets_dir=secrets_dir,
     )
 
 
 @instances.command()
 @click.argument("name")
 @click.argument("tags", metavar="{key=value}", nargs=-1)
+@click.option("--latest", "-l", is_flag=True)
 @click.option("--suffix", "-s", default=None)
 @click.option("--reboot", "-r", is_flag=True)
 @click.option("--dry_run", "-d", is_flag=True)
 @click.pass_context
-def create_image(ctx, name, tags, suffix, reboot, dry_run):
+def create_image(ctx, name, tags, latest, suffix, reboot, dry_run):
     """create ami for named instance
 
     sample:
@@ -81,25 +86,33 @@ def create_image(ctx, name, tags, suffix, reboot, dry_run):
         prod-masters myservice-deploy=prod myservice-server=masters
             serial=$(date +"%Y%m%d%H%M%S") --suffix $(date +"%Y%m%d%H%M%S")
     """
+    LATEST = {"latest": "true"}
+    now = datetime.now()
+    suffix = suffix or now.strftime("%Y%m%d")
+
+    # Find Instance
     instance = query_by_name(None, name)
     if not instance:
         logs.message(dict(error=f"no instance of {name}"))
         return
 
-    now = datetime.now()
-    suffix = suffix or now.strftime("%Y%m%d")
+    # AMI Searching
+    searching = keyvalues(tags, extra=LATEST if latest else {})
 
-    instance_id = instance.InstanceId
-    name = f"{name}-{suffix}"
-    keyvalues = dict(tuple(t.split("=")) for t in tags)
-    tag_specs = instances.tag_specifications("image", keyvalues)
+    # Intance Tags
+    tags = tag_specs({"Name": name, **searching}, resource_type="image")
 
     res = call(
         client().create_image,
-        InstanceId=instance_id,
-        Name=name,
-        TagSpecifications=tag_specs,
+        InstanceId=instance.InstanceId,
+        Name=f"{name}-{suffix}",
+        TagSpecifications=tags,
         NoReboot=not reboot,
         DryRun=dry_run,
     )
+
+    if latest and not dry_run:
+        imaged_id = res["ImageId"]
+        ami.remove_tags(searching, exclude_ids=[imaged_id], removing=LATEST)
+
     logs.message(res)

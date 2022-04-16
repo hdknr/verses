@@ -1,8 +1,10 @@
 import click
 
-from ..base import call, keyvalue_list
+from verses.base import logs
+
+from ..base import keyvalues
 from . import ami, instances
-from .base import client
+from .base import delete_tags as base_delete_tags
 
 
 @click.group()
@@ -16,20 +18,17 @@ ec2.add_command(ami.ami)
 
 
 @ec2.command()
-@click.argument("res_or_args", nargs=-1)
+@click.argument("res_or_tags", nargs=-1)
 @click.option("--dry_run", "-d", is_flag=True)
 @click.pass_context
-def delete_tags(ctx, res_or_args, tags=None, dry_run=False):
+def delete_tags(ctx, res_or_tags, dry_run=False):
     """
     ami-xxxxx ami-yyyyy latest=true
     """
-    resources = [i for i in res_or_args if i.find("=") < 0]
-    tags = keyvalue_list(res_or_args)
-    kwargs = dict(
-        Resources=resources,
-        DryRun=dry_run,
-    )
-    if tags:
-        kwargs["Tags"] = tags
+    resources = [i for i in res_or_tags if i.find("=") < 0]
+    if not resources:
+        logs.message("no resource specified.")
+        return
 
-    return call(client().delete_tags, **kwargs)
+    tags = keyvalues(res_or_tags)
+    return base_delete_tags(resources, tags, dry_run=dry_run)
