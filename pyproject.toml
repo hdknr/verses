@@ -6,7 +6,7 @@ authors = ["user.name <gmail@hdknr.com>"]
 license = "MIT"
 
 [tool.poetry.scripts]
-tools = "verses.runner:main"
+verses = "verses.runner:main"
 
 
 [tool.poetry.dependencies]
