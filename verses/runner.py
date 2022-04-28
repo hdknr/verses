@@ -4,6 +4,7 @@ import click
 import environ as E
 
 from .aws.commands import aws
+from .mysql.commands import mysql
 from .base.process import exec_command
 
 # https://django-environ.readthedocs.io/en/latest/
@@ -28,3 +29,4 @@ def open_terminal(ctx):
 
 # sub-subcommands
 main.add_command(aws)
+main.add_command(mysql)
