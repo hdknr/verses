@@ -37,6 +37,7 @@ SHOW GRANTS FOR '$USER'@'%';
 
 
 @mysql.command(help="mysqldump")
+@click.option("--path", "-p", default=None)
 @click.option("--database_url", "-d", default="DATABASE_URL")
 @click.pass_context
 def dump(ctx, path, database_url):
@@ -49,10 +50,11 @@ def dump(ctx, path, database_url):
 
 
 @mysql.command(help="MySQL ROOT user client")
+@click.option("--path", "-p", default=None)
 @click.option("--database_url", "-d", default="DATABASE_URL")
 @click.pass_context
 def shell(ctx, database_url):
     """ MySQL Root Client """
     db = ctx.obj["env"].db_url(database_url)
-    templ = Template("mysql -h $HOST -u $USER -p$PASSWORD")
+    templ = Template("mysql -h $HOST -u $USER -p$PASSWORD $NAME")
     write_template(templ, **db)
