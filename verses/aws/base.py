@@ -25,12 +25,14 @@ def to_value(source, field):
     return getattr(source, field, None)
 
 
-def filters(tags:dict, params:dict):
+def filters(tags: dict, params: dict):
     def _q(key, value):
         return {"Name": key, "Values": [value]}
 
     # tags: OR filter
-    return [_q(f"tag:{key}", value) for (key, value) in tags.items()] + [_q(key, value) for (key, value) in params.items()]
+    return [_q(f"tag:{key}", value) for (key, value) in tags.items()] + [
+        _q(key, value) for (key, value) in params.items()
+    ]
 
 
 def args_filters(tag_list, params):
@@ -47,7 +49,7 @@ def keyvalues(args, extra=None):
     return dict(keyvalue_list(args))
 
 
-def to_tags(keyvalues:dict):
+def to_tags(keyvalues: dict):
     return [{"Key": key, "Value": value} for key, value in keyvalues.items()]
 
 

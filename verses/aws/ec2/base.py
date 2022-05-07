@@ -18,7 +18,7 @@ def delete_tags(resources, tags, resource_type=None, dry_run=False):
         DryRun=dry_run,
     )
     if tags:
-        kwargs["Tags"]=to_tags(tags)
+        kwargs["Tags"] = to_tags(tags)
 
     print(kwargs)
     return call(client().delete_tags, **kwargs)
