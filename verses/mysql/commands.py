@@ -39,16 +39,19 @@ SHOW GRANTS FOR '$USER'@'%';
 @mysql.command(help="mysqldump")
 @click.option("--path", "-p", default=None)
 @click.option("--database_url", "-d", default="DATABASE_URL")
-@click.option("--insert_only", "-i", is_flag=True)
+@click.option("--mode", "-m", default="all")
 @click.pass_context
-def dump(ctx, path, database_url, insert_only):
+def dump(ctx, path, database_url, mode):
     """ MySQL Dump """
     db = ctx.obj["env"].db_url(database_url)
-    opt = "--no-create-info" if insert_only else ""
+
+    opt = {"all": "", "data": "--no-create-info",  "ddl": "--no-data"}[mode]
+    opt = f"{opt} --skip-extended-insert --set-gtid-purged=OFF  --complete-insert"
     templ = Template(
-        "mysqldump -h $HOST -u $USER $OPT --set-gtid-purged=OFF -p$PASSWORD $NAME"
+        "mysqldump -h $HOST -u $USER $OPT -p$PASSWORD $NAME"
     )
     write_template(templ, OPT=opt, **db)
+
 
 
 @mysql.command(help="MySQL ROOT user client")
